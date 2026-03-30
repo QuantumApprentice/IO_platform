@@ -1,10 +1,9 @@
 //need to look at this for windows build
 //https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-replacefilea
 
-#include "platform_io.h"
-#include "Image2Texture.h"
+#include "io_Platform.h"
 
-#ifdef QFO2_WINDOWS
+#ifdef WINDOWS
 #include <Windows.h>
 #include <string.h>
 #include <direct.h>
@@ -276,7 +275,7 @@ bool io_make_dir(char* dir_path)
 }
 
 
-#elif defined(QFO2_LINUX)
+#elif defined(LINUX)
 #include <strings.h>
 #include <sys/stat.h>
 #include <dirent.h>

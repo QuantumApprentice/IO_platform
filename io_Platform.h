@@ -1,12 +1,12 @@
 #pragma once
 #include <cstdint>
 
-#ifdef QFO2_WINDOWS
+#ifdef WINDOWS
     #define MAX_PATH 256
     #define PLATFORM_SLASH              ('\\')
     #define NATIVE_STRING_TYPE          const wchar_t
     bool io_wstrncmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char);
-#elif defined(QFO2_LINUX)
+#elif defined(LINUX)
     #define MAX_PATH 4096
     #define PLATFORM_SLASH              ('/')
     #define NATIVE_STRING_TYPE          const char
