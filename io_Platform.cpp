@@ -280,6 +280,11 @@ bool io_make_dir(char* dir_path)
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 char* io_get_cwd()
 {
@@ -558,9 +563,9 @@ bool io_create_backup_dir(char* dir)
     return io_make_dir(dest_path);
 }
 
-//loads a text file into a buffer
+//loads a file into a buffer
 //returns the buffer
-char* io_load_txt_file(char* full_path)
+uint8_t* io_load_file(char* full_path)
 {
     if (io_file_exists(full_path) == false) {
         return nullptr;
@@ -568,16 +573,16 @@ char* io_load_txt_file(char* full_path)
 
     //read the entire file into memory and return ptr
     int file_size = io_file_size(full_path);
-    char* text_file_buff = (char*)malloc(file_size+1);
+    uint8_t* file_buff = (uint8_t*)malloc(file_size+1);
 
     FILE* tiles_lst = fopen(full_path, "rb");
-    fread(text_file_buff, file_size, 1, tiles_lst);
+    fread(file_buff, file_size, 1, tiles_lst);
     fclose(tiles_lst);
     //TODO: should I put error checking in
     //      to verify the entire file read in correctly?
 
-    text_file_buff[file_size] = '\0';
-    return text_file_buff;
+    file_buff[file_size] = '\0';
+    return file_buff;
 }
 
 //writes a string (txt) onto disk at destination (path)
