@@ -565,7 +565,7 @@ bool io_create_backup_dir(char* dir)
 
 //loads a file into a buffer
 //returns the buffer
-uint8_t* io_load_file(char* full_path)
+uint8_t* io_load_txt_file(char* full_path)
 {
     if (io_file_exists(full_path) == false) {
         return nullptr;
@@ -583,6 +583,28 @@ uint8_t* io_load_file(char* full_path)
 
     file_buff[file_size] = '\0';
     return file_buff;
+}
+
+// read the entire file into memory
+// and return ptr to file_info struct
+//TODO: should I put error checking in
+//      to verify the entire file read in correctly?
+file_info* io_load_file(char* full_path)
+{
+    if (io_file_exists(full_path) == false) {
+        return nullptr;
+    }
+
+    file_info* file = (file_info*)malloc(sizeof(file_info));
+
+    file->size = io_file_size(full_path);
+    file->data = (uint8_t*)malloc(file->size);
+
+    FILE* disk_file = fopen(full_path, "rb");
+    fread(file->data, file->size, 1, disk_file);
+    fclose(disk_file);
+
+    return file;
 }
 
 //writes a string (txt) onto disk at destination (path)
