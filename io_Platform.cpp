@@ -589,6 +589,7 @@ uint8_t* io_load_txt_file(char* full_path)
 // and return ptr to file_info struct
 //TODO: should I put error checking in
 //      to verify the entire file read in correctly?
+//TODO: stop allocating for "file"
 file_info* io_load_file(char* full_path)
 {
     if (io_file_exists(full_path) == false) {
