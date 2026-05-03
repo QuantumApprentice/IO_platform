@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #ifdef WINDOWS
+    //TODO: Modern Windows supports long paths (up to 32,767 chars) if prefixed with \\?\.
     #define MAX_PATH 256
     #define PLATFORM_SLASH              ('\\')
     #define NATIVE_STRING_TYPE          const wchar_t

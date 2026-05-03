@@ -38,6 +38,7 @@ wchar_t* io_get_err_str(DWORD err)
 char* io_wchar_utf8(NATIVE_STRING_TYPE* src)
 {
     int len = wcslen(src);
+    //TODO: Modern Windows supports long paths (up to 32,767 chars) if prefixed with \\?\
     static char buff[MAX_PATH];
     LPBOOL lpUsedDefaultChar = false;
     int count = WideCharToMultiByte(
@@ -86,8 +87,11 @@ wchar_t* io_utf8_wchar(const char* src)
     return buff;
 }
 
+// Get current working directory
 char* io_get_cwd()
 {
+    //TODO: According to MSDN, this uses malloc to allocate the buffer.
+    //need to handle freeing this memory
     return _getcwd(NULL, 0);
 }
 
@@ -103,6 +107,14 @@ bool io_wstrncmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_cha
 //int io_strncasecmp(const char* str1, const char* str2, int num_char)
 int io_strncasecmp(NATIVE_STRING_TYPE* wstr1, NATIVE_STRING_TYPE* wstr2, int num_char)
 {
+    //TODO: The function returns 0 if it does not succeed.
+    // To get extended error information, the application
+    // can call GetLastError, which can return one of the
+    // following error codes:
+
+    // ERROR_INVALID_FLAGS. The values supplied for flags were invalid.
+    // ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.
+
     return (CompareStringEx(
         LOCALE_NAME_USER_DEFAULT,
         LINGUISTIC_IGNORECASE,
@@ -148,6 +160,7 @@ void* io_open_dir(char* dir_name)
     snprintf(search_buff, MAX_PATH, "%s\\*", dir_name);
 
     wchar_t* str = io_utf8_wchar(search_buff);
+    //TODO: handle this memory leak
     Directory* dir = (Directory*)calloc(1, sizeof(Directory));
     dir->hnd = FindFirstFile(str, &dir->dir_struct);
     if (dir->hnd == INVALID_HANDLE_VALUE) {
@@ -194,6 +207,7 @@ bool io_close_dir(void* dir_stream)
     Directory* ptr = (Directory*)dir_stream;
     HANDLE     hnd = ptr->hnd;
 
+    //TODO: AI says dir_stream needs to be freed, not sure if its right
     int err = FindClose(hnd);
     if (err == 0) {
         //TODO: log to file
@@ -222,7 +236,7 @@ int io_file_size(const char* filename)
     if (error) {
         //TODO: log to file
         DWORD err = GetLastError();
-        printf("Error: io_close_dir() : %d\n%S\n", err, io_get_err_str(err));
+        printf("Error: io_file_size() : %d\n%S\n", err, io_get_err_str(err));
         return 0;
     }
     return (stat_info.st_size);
@@ -251,6 +265,8 @@ bool io_file_exists(const char* filename)
 //TODO: make this wchar_t compatible?
 bool io_make_dir(char* dir_path)
 {
+    //TODO: the rest of your Windows code uses wchar_t (UTF-16),
+    //      you should use _wmkdir(io_utf8_wchar(dir_path)).
     int error;
     error = _mkdir(dir_path);
     if (error == 0) {
@@ -286,6 +302,7 @@ bool io_make_dir(char* dir_path)
 #include <stdlib.h>
 #include <time.h>
 
+// Get current working directory
 char* io_get_cwd()
 {
     return getcwd(NULL, 0);
@@ -299,6 +316,8 @@ int io_strncasecmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_c
 // return 0 == match, <0 == less than match, >0 == greater than match
 int io_strncmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char)
 {
+    //TODO: this is case insensitive compare,
+    //  probably should be case sensitive instead?
     return strncasecmp(str1, str2, num_char);
 }
 
@@ -574,6 +593,10 @@ uint8_t* io_load_txt_file(char* full_path)
     //read the entire file into memory and return ptr
     int file_size = io_file_size(full_path);
     uint8_t* file_buff = (uint8_t*)malloc(file_size+1);
+    if (file_buff == NULL) {
+        printf("ERROR: Unable to allocate %d bytes memory. io_load_txt_file()\n", file_size+1);
+        return;
+    }
 
     FILE* tiles_lst = fopen(full_path, "rb");
     fread(file_buff, file_size, 1, tiles_lst);
