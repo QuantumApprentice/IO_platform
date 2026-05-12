@@ -595,7 +595,7 @@ uint8_t* io_load_txt_file(char* full_path)
     uint8_t* file_buff = (uint8_t*)malloc(file_size+1);
     if (file_buff == NULL) {
         printf("ERROR: Unable to allocate %d bytes memory. io_load_txt_file()\n", file_size+1);
-        return;
+        return NULL;
     }
 
     FILE* tiles_lst = fopen(full_path, "rb");
