@@ -20,7 +20,8 @@ struct file_info {
 
 
 int io_strncmp(const char* str1, const char* str2, int num_char);
-int io_strncasecmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char);
+int io_strncasecmp(char* str1, char* str2, int num_char);
+int io_pathncasecmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char);
 bool io_isdir(char* dir_path);
 
 char* io_wchar_utf8(NATIVE_STRING_TYPE* src);
@@ -46,3 +47,4 @@ uint8_t* io_load_txt_file(char* full_path);
 file_info* io_load_file(char* full_path);
 bool io_save_txt_file(char* path, char* txt);
 bool fallout2exe_exists(const char* game_path);
+char* io_get_filename_from_path(char* path);

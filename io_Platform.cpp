@@ -2,10 +2,13 @@
 //https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-replacefilea
 
 #include "io_Platform.h"
+#include <stdio.h>
+#include <sys/stat.h>
+#include <time.h>
 
 #ifdef WINDOWS
 #include <Windows.h>
-#include <string.h>
+//#include <string.h>
 #include <direct.h>
 
 struct Directory {
@@ -24,7 +27,7 @@ wchar_t* io_get_err_str(DWORD err)
         NULL,
         err,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        lpMsgBuf,
+        (LPSTR)lpMsgBuf,
         1024,
         NULL) == 0) {
         int wtf = GetLastError();
@@ -38,7 +41,7 @@ wchar_t* io_get_err_str(DWORD err)
 char* io_wchar_utf8(NATIVE_STRING_TYPE* src)
 {
     int len = wcslen(src);
-    //TODO: Modern Windows supports long paths (up to 32,767 chars) if prefixed with \\?\
+    //TODO: Modern Windows supports long paths (up to 32,767 chars) if prefixed with \\?\   //
     static char buff[MAX_PATH];
     LPBOOL lpUsedDefaultChar = false;
     int count = WideCharToMultiByte(
@@ -103,27 +106,42 @@ bool io_wstrncmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_cha
 }
 
 //returns -1/0/1
+int io_strncasecmp(char* str1, char* str2, int count)
+{
+    return strnicmp(str1, str2, count);
+}
+
+//returns -1/0/1
 // int io_strncasecmp(std::filesystem::path src, void* iter_src, size_t size)
 //int io_strncasecmp(const char* str1, const char* str2, int num_char)
-int io_strncasecmp(NATIVE_STRING_TYPE* wstr1, NATIVE_STRING_TYPE* wstr2, int num_char)
+//int io_strncasecmp(NATIVE_STRING_TYPE* wstr1, NATIVE_STRING_TYPE* wstr2, int num_char)
+int io_pathncasecmp(NATIVE_STRING_TYPE* wstr1, NATIVE_STRING_TYPE* wstr2, int num_char)
 {
-    //TODO: The function returns 0 if it does not succeed.
-    // To get extended error information, the application
-    // can call GetLastError, which can return one of the
-    // following error codes:
-
-    // ERROR_INVALID_FLAGS. The values supplied for flags were invalid.
-    // ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.
-
-    return (CompareStringEx(
+    int cmp = (CompareStringEx(
         LOCALE_NAME_USER_DEFAULT,
         LINGUISTIC_IGNORECASE,
         wstr1, -1,
         wstr2,
-        -1, NULL, NULL, NULL) - 2
-        //-2 to convert windows bs string
-        //  to match the standard  ( -1/0/1 )
+        -1, NULL, NULL, NULL)
     );
+
+    // CompareStringEx() returns 0 if it does not succeed.
+    // To get extended error information, the application
+    // can call GetLastError, which can return one of the
+    // following error codes:
+    // ERROR_INVALID_FLAGS. The values supplied for flags were invalid.
+    // ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.
+    if (cmp == 0) {
+        printf("ERROR: WSTR compare generated an error. %s\n",
+            (GetLastError() == ERROR_INVALID_PARAMETER) ?
+            "ERROR_INVALID_PARAMETER" : "Can't be ERROR_INVALID_FLAGS, only one flag is used."
+            );
+        printf("%s\n", io_get_err_str(cmp));
+    }
+
+    return cmp - 2;
+    //-2 to convert windows bs string
+   //  to match the standard  ( -1/0/1 )
 }
 
 // return 0 == match, <0 == less than match, >0 == greater than match
@@ -162,7 +180,9 @@ void* io_open_dir(char* dir_name)
     wchar_t* str = io_utf8_wchar(search_buff);
     //TODO: handle this memory leak
     Directory* dir = (Directory*)calloc(1, sizeof(Directory));
-    dir->hnd = FindFirstFile(str, &dir->dir_struct);
+    dir->hnd = FindFirstFile(
+        (LPCSTR)str,        //QTODO: casting this to clear a compile error, but why does it error here but not in msk2bmpGUI?
+        &dir->dir_struct);
     if (dir->hnd == INVALID_HANDLE_VALUE) {
         DWORD err = GetLastError();
         if (err == ERROR_FILE_NOT_FOUND) {
@@ -197,7 +217,9 @@ char* io_scan_dir(void* dir_stream)
         return NULL;
     }
 
-    char* file_name = io_wchar_utf8(data.cFileName);
+    char* file_name = io_wchar_utf8(
+        (wchar_t*)data.cFileName        //QTODO: this should be wchar by default...why is it not here but is in msk2bmpGUI?
+    );
 
     return file_name;
 }
@@ -296,10 +318,8 @@ bool io_make_dir(char* dir_path)
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <string.h>
+//#include <string.h>
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 
 // Get current working directory
@@ -309,6 +329,10 @@ char* io_get_cwd()
 }
 
 int io_strncasecmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char)
+{
+    return strncasecmp(str1, str2, num_char);
+}
+int io_pathncasecmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char)
 {
     return strncasecmp(str1, str2, num_char);
 }
@@ -593,9 +617,9 @@ uint8_t* io_load_txt_file(char* full_path)
     //read the entire file into memory and return ptr
     int file_size = io_file_size(full_path);
     uint8_t* file_buff = (uint8_t*)malloc(file_size+1);
-    if (file_buff == NULL) {
+    if (file_buff == nullptr) {
         printf("ERROR: Unable to allocate %d bytes memory. io_load_txt_file()\n", file_size+1);
-        return NULL;
+        return nullptr;
     }
 
     FILE* tiles_lst = fopen(full_path, "rb");
@@ -668,4 +692,9 @@ bool fallout2exe_exists(const char* game_path)
         return true;
     }
     return false;
+}
+
+char* io_get_filename_from_path(char* path)
+{
+    return strrchr(path, PLATFORM_SLASH) + 1;
 }
