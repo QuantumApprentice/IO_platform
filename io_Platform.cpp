@@ -106,7 +106,7 @@ bool io_wstrncmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_cha
 }
 
 //returns -1/0/1
-int io_strncasecmp(char* str1, char* str2, int count)
+int io_strncasecmp(const char* str1, const char* str2, int count)
 {
     return strnicmp(str1, str2, count);
 }
