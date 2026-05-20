@@ -318,8 +318,9 @@ bool io_make_dir(char* dir_path)
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-//#include <string.h>
+#include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <time.h>
 
 // Get current working directory
@@ -328,7 +329,7 @@ char* io_get_cwd()
     return getcwd(NULL, 0);
 }
 
-int io_strncasecmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char)
+int io_strncasecmp(const char* str1, const char* str2, int num_char)
 {
     return strncasecmp(str1, str2, num_char);
 }

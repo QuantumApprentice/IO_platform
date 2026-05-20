@@ -20,7 +20,7 @@ struct file_info {
 
 
 int io_strncmp(const char* str1, const char* str2, int num_char);
-int io_strncasecmp(char* str1, char* str2, int num_char);
+int io_strncasecmp(const char* str1, const char* str2, int num_char);
 int io_pathncasecmp(NATIVE_STRING_TYPE* str1, NATIVE_STRING_TYPE* str2, int num_char);
 bool io_isdir(char* dir_path);
 
