@@ -47,5 +47,5 @@ uint8_t* io_load_txt_file(char* full_path);
 file_info* io_load_file(char* full_path);
 bool io_save_txt_file(char* path, char* txt);
 bool fallout2exe_exists(const char* game_path);
-char* io_get_filename_from_path(char* path);
-char* io_get_file_extension(char* path);
+char* io_get_filename_from_path(const char* path);
+char* io_get_file_extension(const char* path);

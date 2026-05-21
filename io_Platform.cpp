@@ -696,13 +696,13 @@ bool fallout2exe_exists(const char* game_path)
 }
 
 // returns pointer to first char in filename
-char* io_get_filename_from_path(char* path)
+char* io_get_filename_from_path(const char* path)
 {
-    return strrchr(path, PLATFORM_SLASH) + 1;
+    return strrchr((char*)path, PLATFORM_SLASH) + 1;
 }
 
 // returns pointer to first char in extension (first after the '.')
-char* io_get_file_extension(char* path)
+char* io_get_file_extension(const char* path)
 {
-    return strrchr(path, '.') + 1;
+    return strrchr((char*)path, '.') + 1;
 }
