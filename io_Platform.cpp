@@ -144,10 +144,11 @@ int io_pathncasecmp(NATIVE_STRING_TYPE* wstr1, NATIVE_STRING_TYPE* wstr2, int nu
    //  to match the standard  ( -1/0/1 )
 }
 
+// case insensitive string compare
 // return 0 == match, <0 == less than match, >0 == greater than match
 int io_strncmp(const char* str1, const char* str2, int num_char)
 {
-    return strncmp(str1, str2, num_char);
+    return strnicmp(str1, str2, num_char);
 }
 
 // match this return to the linux version
